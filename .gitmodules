@@ -1,0 +1,3 @@
+[submodule "monadjs"]
+	path = monadjs
+	url = https://github.com/dotnetCarpenter/monadjs.git
