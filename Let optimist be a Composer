@@ -1,0 +1,6 @@
+Let optimist be a Composer
+Let identity or continuation be a monad's bind function
+Add a unit function to the mix
+And encapsulate it all in a class
+=
+Async Monad

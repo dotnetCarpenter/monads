@@ -1,34 +1,54 @@
 function identity(value) {
   this.value = value;
 }
-identity.prototype.bind = function bind(id, fn) {
-  return fn.call(id, id.value)
+identity.prototype.bind = function bind(id, fun) { // >>=
+  return fun.call(id, id.value)
 }
-identity.prototype.unit = function unit(value) {
+identity.prototype.unit = function unit(value) { // return
   return new this.constructor(value)
 }
 
 
 // wadler essence
-function lam(list) {
+var lam = function(list) {
+  console.log("Lam::"+arguments[0])
   return list[0] + list[1]
 }
 function h() {
+  console.log("h::"+arguments[0])
   return 10 + 11;
 }
 
-var m = new identity([10,11]);
+var m = new identity();
 var k = new identity();
 console.log(
   k.bind(k.unit([10,11]), lam) === lam([10, 11]),
-  equal( k.bind(k, k.unit) ).to(k)
-  //m.bind(m, function x() { return m.bind(lam(x), [10,11]) }) === m.bind(m.bind(m, function x() { return lam(x) }), function y() { return [10,11] })
-  //, m.bind(m, function x() { return m.bind(lam(x), [10,11]) })
-  ,
-  m.bind(m, function(x){ return m.bind(lam(x), function(y){ return h(y)}) })
+  equal( k.bind(k, k.unit) ).to(k),
+
+  m.bind(m.unit([10,11]), function(x){
+    return m.bind(lam(x), function(y){
+      return h(y)
+    })
+  })
   ===
-  m.bind(m.bind(m, function(x){ return lam(x) }), function(y){ return h(y) })
+  m.bind(
+    m.bind(
+      m.unit([10,11]),
+      function(x){
+        return lam(x)
+      }
+    ),
+    function(y){
+      return h(y)
+    }
+  )
 );
+
+function Value() {}
+Value.prototype = new identity();
+Value.prototype.toString = function() {
+  return this.value
+}
 
 // var term0 = function app(x,y) {
 //   var monad = new identity();
