@@ -80,7 +80,7 @@ function identity(fn) {
 
 function continuation(fn) {
   return function(cb, data) {
-    fn(cb, data));
+    fn(cb, data);
   }
 }
 

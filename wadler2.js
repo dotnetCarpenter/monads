@@ -14,9 +14,9 @@ var lam = function(list) {
   console.log("Lam::"+arguments[0])
   return list[0] + list[1]
 }
-function h() {
+function h(list) {
   console.log("h::"+arguments[0])
-  return 10 + 11;
+  return list[0] / list[1]
 }
 
 var m = new identity();
