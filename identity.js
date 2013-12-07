@@ -19,16 +19,14 @@ function log(el) {
   }
 }
 
-function Logger(el) {
+function Composer(fun) {
   //this.value = this.constructor.unit(el instanceof String ? document.getElementById(el) : el);
   var super = this;
-  this.bind = function(msg) {
-    
-  }
+  this.bind = super.bind()
 }
 Logger.prototype = new M();
 
-var logger = new Logger("out");
+var logger = new Logger(log);
 
 /*
 monad.bind(monad.unit("hej "), function(a) {

@@ -8,7 +8,7 @@ var compose = function() { // continuation passing style - runs all supplied fun
   }
   var args = getArgs.call(arguments)
     .map(function(fn) {
-      return new identity().bind2(fn)
+      return new identity().glue(fn)
     });
   var continuation = next.bind(args);
   return continuation;
@@ -20,7 +20,7 @@ function getArgs() {
 function identity(value) {
   this.value = value;
 }
-identity.prototype.bind2 = function bind(fn) { // >>=
+identity.prototype.glue = function bind(fn) { // >>=
   var self = this;
   return function(cb, data) {
     var ret = cb( self.unit( fn(data instanceof identity ? data.value : data)) );
@@ -32,8 +32,9 @@ identity.prototype.unit = function unit(value) { // return
 }
 
 var test1 = compose(add1, add2, pow);
-// var test2 = compose(add1, add2, multi, long);
+var test2 = compose(add1, add2, pow, long);
 console.dir(test1(3.48074069840786))
+console.dir(test2(2.48074069840786))
 
 // proof
 var monad = new identity();

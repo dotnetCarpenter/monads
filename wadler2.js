@@ -19,6 +19,12 @@ function h(list) {
   return list[0] / list[1]
 }
 
+var idMonad = new identity();
+var add = idMonad.unit([10,11]);
+add.bind(add, function(x) {
+  lam
+})
+
 var m = new identity();
 var k = new identity();
 console.log(
