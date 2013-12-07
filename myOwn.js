@@ -3,8 +3,8 @@ var compose = function() { // continuation passing style - runs all supplied fun
     var args = getArgs.call(arguments);
     var currentFn = this.shift();
     if(!currentFn)
-      return args[0].value;  // done
-    return currentFn(continuation, args[0]); // could save return here...
+      return args[0];  // done
+    return currentFn(continuation, args[0]);
   }
   var args = getArgs.call(arguments)
     .map(function(fn) {
@@ -31,24 +31,23 @@ identity.prototype.unit = function unit(value) { // return
   return new this.constructor(value)
 }
 
-var test1 = compose(add1, add2, multi);
+var test1 = compose(add1, add2, pow);
 // var test2 = compose(add1, add2, multi, long);
-console.log(test1(1))
-// function identity(fn) {
-//   return function identity(cb, data) {
-//     return cb(fn(data));
-//   }
-// };
+console.dir(test1(3.48074069840786))
 
-
-// function continuation(fn) {
-//   return function(cb, data) {
-//     fn(cb, data);
-//   }
-// }
-
-
-
+// proof
+var monad = new identity();
+console.log(
+/* Left identity */   compose(add2)(40).value === add2(40)
+/* Right identity */, compose(add1, add2)(39).value === add2(add1(39))
+/* Associativity */ , compose(add1, function(x) {
+                                      return compose(add2)(x).value
+                                    })(39).value
+                      ===
+                      compose(compose(add1), function(x) {
+                        return add2(x.value);
+                      })(39).value
+);
 
 /*** functions to test ***/
 function add1(a) {
@@ -57,7 +56,7 @@ function add1(a) {
 function add2(a) {
   return a + 2
 }
-function multi(a) {
+function pow(a) {
   return a * a;
 }
 function long(a) {
