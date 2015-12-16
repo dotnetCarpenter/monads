@@ -3,6 +3,8 @@
 // const assert = require("assert");
 
 function Promise(executor) {
+  if(executor == undefined) throw new TypeError('Not enough arguments to Promise.');
+
   let thenables = [];
   let rejects = [];
   let catches = [];
