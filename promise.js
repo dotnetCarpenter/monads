@@ -57,6 +57,9 @@ Promise.resolve = function(v) {
     p = new Promise(resolve => resolve(v));
   return p;
 }
+Promise.reject = function(v) {
+  return new Promise((resolve, reject) => reject(v));
+}
 
 
 // test then
@@ -156,4 +159,16 @@ p7.then(function(v) {
   console.log(v); // "Resolving"
 }, function(e) {
   throw new Error("Should not be called"); // not called
+});
+
+// test static reject
+Promise.reject("Testing static reject").then(function(reason) {
+  throw new Error("Should not be called"); // not called
+}, function(reason) {
+  console.log(reason); // "Testing static reject"
+});
+Promise.reject(new Error("fail")).then(function(error) {
+  throw new Error("Should not be called"); // not called
+}, function(error) {
+  console.log(error); // Stacktrace
 });
