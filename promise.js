@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require("assert");
+// const assert = require("assert");
 
 function Promise(executor) {
   let thenables = [];
@@ -107,6 +107,28 @@ Promise.race = function(iterable) {
     })
   });
 };
+Promise.all = function(iterable) {
+  // let allResolved = false;
+  let resolvedLength = iterable.length;
+  let promiseValues = [];
+  return new Promise((resolve, reject) => {
+    iterable.map(
+      promise => promise instanceof Promise ?
+        promise : Promise.resolve(promise)
+    ).forEach(promise => promise.then(
+      value => {
+        if(resolvedLength === 1)
+          resolve(promiseValues.concat(value));
+        else {
+          resolvedLength--;
+          promiseValues.push(value);
+        }
+      },
+      value => reject(value)
+    ));
+  });
+}
+
 /*
 // test then
 var p1 = new Promise(function(resolve, reject) {
@@ -121,6 +143,7 @@ p1.then(function(value) {
   console.log(reason); // Error!
 });
 
+
 // test then chainable
 var p2 = new Promise(function(resolve, reject) {
   resolve(1);
@@ -134,6 +157,7 @@ p2.then(function(value) {
 p2.then(function(value) {
   console.log("third", value); // 1
 });
+
 
 // test composition
 function fetch() {
@@ -151,6 +175,7 @@ p3().then(function(value) {
   console.log(value);
 })
 
+
 // test static resolve
 Promise.resolve("Success - static resolve").then(function(value) {
   console.log(value); // "Success"
@@ -166,6 +191,7 @@ var cast = Promise.resolve(original);
 cast.then(function(v) {
   console.log(v); // true
 });
+
 
 // test Resolving a thenable object
 var p5 = Promise.resolve({
@@ -205,6 +231,7 @@ p7.then(function(v) {
   throw new Error("Should not be called"); // not called
 });
 
+
 // test static reject
 Promise.reject("Testing static reject").then(function(reason) {
   throw new Error("Should not be called"); // not called
@@ -216,6 +243,7 @@ Promise.reject(new Error("fail")).then(function(error) {
 }, function(error) {
   console.log(error); // Stacktrace
 });
+
 
 // test catch
 var p8 = new Promise(function(resolve, reject) {
@@ -242,7 +270,7 @@ p8.then(function(value) {
 }, function () {
   console.log('Not fired due to the catch');
 });
-*/
+
 
 // test race
 var p9 = new Promise(function(resolve, reject) {
@@ -280,4 +308,42 @@ Promise.race([p13, p14]).then(function(val14e) {
 }, function(reason) {
   console.log(reason); // "six"
   // p14 is faster, so it rejects
+});
+
+
+// test Promise.all
+var p15 = Promise.resolve(3);
+var p16 = 1337;
+var p17 = new Promise(function(resolve, reject) {
+  setTimeout(resolve, 100, "foo");
+});
+Promise.all([p15, p16, p17]).then(function(values) {
+  console.log(values); // [3, 1337, "foo"]
+});
+*/
+// Promise.all is rejected if one of the elements is rejected
+// and Promise.all fails fast: If you have four promises which
+// resolve after a timeout, and one rejects immediately, then
+// Promise.all rejects immediately.
+var p18 = new Promise(function(resolve, reject) {
+  setTimeout(resolve, 1000, "one");
+});
+var p19 = new Promise(function(resolve, reject) {
+  setTimeout(resolve, 2000, "two");
+});
+var p20 = new Promise(function(resolve, reject) {
+  setTimeout(resolve, 3000, "three");
+});
+var p21 = new Promise(function(resolve, reject) {
+  setTimeout(resolve, 4000, "four");
+});
+var p22 = new Promise(function(resolve, reject) {
+  reject("reject");
+  //From console:
+  //"reject"
+});
+Promise.all([p18, p19, p20, p21, p22]).then(function(value) {
+  console.log(value);
+}, function(reason) {
+  console.log(reason)
 });
