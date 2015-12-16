@@ -1,9 +1,17 @@
 'use strict';
 
+const assert = require("assert");
+
 function Promise(executor) {
   let thenables = [];
   let rejects = [];
-  let state = 'pending';
+  let catches = [];
+  let states = {
+    pending: 1,
+    fulfilled: 2,
+    rejected: 4
+  }
+  let state = states.pending;
   let value;
   let timer;
 
@@ -13,37 +21,55 @@ function Promise(executor) {
     thenables.push(f);
     rejects.push(r);
 
-    if(state === 'fulfilled')
+    if(state === states.fulfilled)
       timer = setTimeout(this.resolve.bind(this, value), 0);
     else
-    if(state === 'rejected')
+    if(state === states.rejected)
       timer = setTimeout(this.reject.bind(this, value), 0);
 
     return this;
   };
   this.resolve = v => {
-    state = 'fulfilled';
+    state = states.fulfilled;
     value = v;
 
     let chainableValue = value;
-    thenables.forEach(f => chainableValue = f(chainableValue || value));
+    thenables.forEach(f => {
+      try {
+        chainableValue = f(chainableValue || value)
+      } catch(e) {
+        if(catches.length === 0)
+          this.reject(e);
+        else {
+          catches.forEach(f => f(e));
+          catches = [];
+        }
+      }
+    });
     thenables = [];
-  //  console.log(this, state, value, thenables);
   };
   this.reject = v => {
-    state = 'rejected';
+    state = states.rejected;
     value = v;
 
     let chainableValue = value;
-    rejects.forEach(f => chainableValue = f(chainableValue || value));
+    let error;
+    try {
+      rejects.forEach(f => chainableValue = f(chainableValue || value));
+    } catch(e) { error = e;}
     rejects = [];
-    //console.log(this, state, value, rejects);
-  }
+    if(error) throw error;
+    // console.log(this, state, value, rejects);
+  };
+  this.catch = f => {
+    catches.push(f);
+    return this;
+  };
 
   try {
     executor(this.resolve, this.reject);
   } catch(e) {
-    if(state !== 'fulfilled')
+    if(state !== states.fulfilled)
       this.reject(e);
   }
 }
@@ -79,14 +105,12 @@ p1.then(function(value) {
 var p2 = new Promise(function(resolve, reject) {
   resolve(1);
 });
-
 p2.then(function(value) {
   console.log("first", value); // 1
   return value + 1;
 }).then(function(value) {
   console.log("second", value); // 2
 });
-
 p2.then(function(value) {
   console.log("third", value); // 1
 });
@@ -171,4 +195,30 @@ Promise.reject(new Error("fail")).then(function(error) {
   throw new Error("Should not be called"); // not called
 }, function(error) {
   console.log(error); // Stacktrace
+});
+
+// test catch
+var p8 = new Promise(function(resolve, reject) {
+  resolve('Success');
+});
+p8.then(function(value) {
+  console.log(value); // "Success!"
+  throw 'oh, no!';
+}).catch(function(e) {
+  console.log(e); // "oh, no!"
+}).then(function(e){
+  console.log('after a catch the chain is restored');
+}, function () {
+  console.log('Not fired due to the catch');
+});
+// The following behaves the same as above
+p8.then(function(value) {
+  console.log(value); // "Success!"
+  return Promise.reject('oh, no!');
+}).catch(function(e) {
+  console.log(e); // "oh, no!"
+}).then(function(e){
+  console.log('after a catch the chain is restored');
+}, function () {
+  console.log('Not fired due to the catch');
 });
