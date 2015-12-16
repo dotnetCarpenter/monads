@@ -88,19 +88,26 @@ Promise.reject = function(v) {
 }
 Promise.race = function(iterable) {
   return new Promise((resolve, reject) => {
+    let muteResolve = false,
+        muteReject = false;
+
     iterable.forEach(promise => {
       promise.then(
         value => {
-          resolve(value);
+          muteReject = true;
+          if(!muteResolve)
+            resolve(value);
         },
         value => {
-          reject(value)
+          muteResolve = true;
+          if(!muteReject)
+            reject(value)
         }
       )
     })
   });
 };
-
+/*
 // test then
 var p1 = new Promise(function(resolve, reject) {
   //resolve("Success!");
@@ -235,6 +242,7 @@ p8.then(function(value) {
 }, function () {
   console.log('Not fired due to the catch');
 });
+*/
 
 // test race
 var p9 = new Promise(function(resolve, reject) {
@@ -245,5 +253,31 @@ var p10 = new Promise(function(resolve, reject) {
 });
 Promise.race([p9, p10]).then(function(value) {
   console.log(value); // "two"
-  // Both resolve, but p2 is faster
+  // Both resolve, but p10 is faster
+});
+
+var p11 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 100, "three");
+});
+var p12 = new Promise(function(resolve, reject) {
+    setTimeout(reject, 500, "four");
+});
+Promise.race([p11, p12]).then(function(value) {
+  console.log(value); // "three"
+  // p11 is faster, so it resolves
+}, function(reason) {
+   throw new Error("Should not be called"); // not called
+});
+
+var p13 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 500, "five");
+});
+var p14 = new Promise(function(resolve, reject) {
+    setTimeout(reject, 100, "six");
+});
+Promise.race([p13, p14]).then(function(val14e) {
+   throw new Error("Should not be called"); // not called
+}, function(reason) {
+  console.log(reason); // "six"
+  // p14 is faster, so it rejects
 });
