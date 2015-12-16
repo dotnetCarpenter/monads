@@ -129,7 +129,7 @@ Promise.all = function(iterable) {
   });
 }
 
-/*
+
 // test then
 var p1 = new Promise(function(resolve, reject) {
   //resolve("Success!");
@@ -210,7 +210,6 @@ var thenable = { then: function(resolve) {
   throw new TypeError("Throwing");
   resolve("Resolving");
 }};
-
 var p6 = Promise.resolve(thenable);
 p6.then(function(v) {
   throw new Error("Should not be called"); // not called
@@ -320,7 +319,7 @@ var p17 = new Promise(function(resolve, reject) {
 Promise.all([p15, p16, p17]).then(function(values) {
   console.log(values); // [3, 1337, "foo"]
 });
-*/
+
 // Promise.all is rejected if one of the elements is rejected
 // and Promise.all fails fast: If you have four promises which
 // resolve after a timeout, and one rejects immediately, then
