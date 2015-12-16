@@ -43,7 +43,8 @@ function Promise(executor) {
   try {
     executor(this.resolve, this.reject);
   } catch(e) {
-    this.reject(e);
+    if(state !== 'fulfilled')
+      this.reject(e);
   }
 }
 Promise.resolve = function(v) {
@@ -127,7 +128,7 @@ console.log(p5 instanceof Promise) // true, object casted to a Promise
 p5.then(function(v) {
     console.log(v); // "fulfilled!"
   }, function(e) {
-    throw new Error("Should not be called")// not called
+    throw new Error("Should not be called"); // not called
 });
 
 // Thenable throws before callback
@@ -139,7 +140,20 @@ var thenable = { then: function(resolve) {
 
 var p6 = Promise.resolve(thenable);
 p6.then(function(v) {
-  // not called
+  throw new Error("Should not be called"); // not called
 }, function(e) {
   console.log(e); // TypeError: Throwing
+});
+
+// Thenable throws after callback
+// Promise resolves
+var thenable = { then: function(resolve) {
+  resolve("Resolving");
+  throw new TypeError("Throwing");
+}};
+var p7 = Promise.resolve(thenable);
+p7.then(function(v) {
+  console.log(v); // "Resolving"
+}, function(e) {
+  throw new Error("Should not be called"); // not called
 });
