@@ -78,7 +78,7 @@ Promise.resolve = function(v) {
   if(v instanceof Promise)
     p = v;
   else if(v.then)
-    p = new Promise(v.then)
+    p = new Promise(v.then);
   else
     p = new Promise(resolve => resolve(v));
   return p;
@@ -86,7 +86,20 @@ Promise.resolve = function(v) {
 Promise.reject = function(v) {
   return new Promise((resolve, reject) => reject(v));
 }
-
+Promise.race = function(iterable) {
+  return new Promise((resolve, reject) => {
+    iterable.forEach(promise => {
+      promise.then(
+        value => {
+          resolve(value);
+        },
+        value => {
+          reject(value)
+        }
+      )
+    })
+  });
+};
 
 // test then
 var p1 = new Promise(function(resolve, reject) {
@@ -221,4 +234,16 @@ p8.then(function(value) {
   console.log('after a catch the chain is restored');
 }, function () {
   console.log('Not fired due to the catch');
+});
+
+// test race
+var p9 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 500, "one");
+});
+var p10 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 100, "two");
+});
+Promise.race([p9, p10]).then(function(value) {
+  console.log(value); // "two"
+  // Both resolve, but p2 is faster
 });
