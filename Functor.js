@@ -3,7 +3,10 @@
 // http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 // run with node  --harmony_rest_parameters Functor.js
 
+// Test function
 const plus3 = x => x+3
+
+// Functors
 const fmap = (f, F) => {
   if(F instanceof Nothing) return F
   if(F instanceof List) return F.fmap(fmap.bind(null, f))
@@ -16,7 +19,6 @@ function Just(val) {
 }
 function Maybe(val) {
   if(val == undefined) return new Nothing
-  //if(val instanceof Just) 
   return new Just(val)
 }
 function Nothing() {
@@ -33,6 +35,7 @@ class List extends Array {
   }
 }
 
+// Tests
 console.log(
   'fmap(plus3, Just(2))\t-> ',
   fmap(plus3, Just(2))
