@@ -6,7 +6,7 @@ let term0 = App(
 							Add( Var("x"), Var("x") ),
 							Add( Con(10), Con(11) )
 						);
-
+// functions
 function App() {}
 function Lam() {}
 function Add() {}
@@ -14,13 +14,20 @@ function Var() {}
 function Con() {}
 function Wrong() {}
 
+// types
 function Name() { return "String"; }
 function Environment() { return [Name, Value]; }
-let Value; //= Wrong || Number || Value => new M(Value)
+
+let Value; //= Wrong || Number || Fun Value => new M(Value)
 
 function showval(Value) {
 	if(Value instanceof Wrong) return "<wrong>";
+	if(!Number.isNaN(Value)) return String(Value);
+	if(Value instanceof Function) return "<function>";
+}
 
+function lookup(a, tuple) {
+	return a === tuple[0] ? tuple[1] : null;
 }
 
 function M() {

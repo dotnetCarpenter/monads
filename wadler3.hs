@@ -10,11 +10,13 @@
   -- | isNumber b = c
   -- where
 --     c = read b
--- unitM :: a -> Monad a
--- unitM
--- bindM :: Monad a -> (a -> Monad b) -> Monad b
--- bindM
--- type M      =
+
+
+type M						= (M, unitM, bindM)
+unitM :: a -> M a
+unitM
+bindM :: M a -> (a -> M b) -> M b
+bindM
 
 term0 = (App (Lam "x" (Add (Var "x") (Var "x")))
 						 (Add (Con 10) (Con 11)))
@@ -37,3 +39,14 @@ showval :: Value -> String
 showval Wrong = "<wrong>"
 showval (Num i) = show i
 showval (Fun f) = "<function>"
+
+interp :: Term -> Environment -> M Value
+interp (Var x) e	= lookup x e
+interp (Con i) e	= unitM (Num i)
+interp (Add u v)	= interp u e `bindM` (\a ->
+										interp v e `bindM` (\b ->
+										add a b))
+interp (Lam x v) e= unitM (Fun (\a -> interp v ((x,a):e)))
+interp (App t u) e= interp t e `bindM` (\f ->
+										interp u e `bindM` (\a ->
+										apply f a))
