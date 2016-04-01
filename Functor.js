@@ -49,13 +49,19 @@ console.log(
   'fmap(plus3, Maybe())\t-> ',
   fmap(plus3, Maybe())
 )
+
+console.log('Run findPost two times. findPost sometimes return null but alway wrapped in a Maybe')
 console.log(
   fmap(getPostTitle, findPost(1)),
   fmap(getPostTitle, findPost(1))
 )
+
+console.log('What happens when you apply a function to a list')
 console.log(
   new List(2,4,6)
-, fmap(plus3, new List(2,4,6))
+)
+console.log(
+  fmap(plus3, new List(2,4,6))
 )
 
 function getPostTitle (post) { return post.title }
