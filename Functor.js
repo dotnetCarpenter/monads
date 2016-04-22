@@ -27,8 +27,7 @@ function Nothing() {
 }
 class List extends Array {
   constructor(...args) {
-    super(...args.map(x => Maybe(x)))
-    
+    super(...args.map(x => Maybe(x)))    
   }
   fmap(f) {
     return this.map(f)
@@ -53,7 +52,7 @@ console.log(
   fmap(plus3, Maybe())
 )
 
-console.log('Run findPost two times. findPost sometimes return null but alway wrapped in a Maybe')
+console.log('Run findPost two times. findPost sometimes return null but the return value will always be wrapped in a Maybe')
 console.log(
   fmap(getPostTitle, findPost(1)),
   fmap(getPostTitle, findPost(1))
