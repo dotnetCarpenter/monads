@@ -3,6 +3,8 @@
 // http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 // run with node  --harmony_rest_parameters Functor.js
 
+const tap = require("tap")
+
 // Test function
 const plus3 = x => x+3
 
@@ -35,6 +37,8 @@ class List extends Array {
 }
 
 // Tests
+// tap.same(fmap(plus3, Just(2)), Just(5), "fmap knows how to apply functions to values that are wrapped in a context.")
+tap.equal("hello", "hello")
 console.log(
   'fmap(plus3, Just(2))\t-> ',
   fmap(plus3, Just(2))
