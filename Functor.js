@@ -8,14 +8,13 @@ const tap = require("tap")
 // Test function
 const plus3 = x => x + 3
 const plus2 = x => x + 2
-const minus15 = x => x - 15
 
 // Functors
-// (a->b), fa -> fb
+// (a->b), fa -> b
 const fmap = (f, F) => F.fmap( x => f(x) )
 
 function Just(val) {
-	if(!new.target) return new Just(val)
+  if(!new.target) return new Just(val)
   this.fmap = f => f(val)
 }
 
@@ -38,8 +37,8 @@ class List extends Array {
 }
 
 Function.prototype.fmap = function(f) {
-	const self = this
-	return x => self(f(x))
+  const self = this
+  return x => self(f(x))
 }
 
 // Tests
@@ -65,7 +64,7 @@ tap.like(foo(10), 15, "So functions are Functors too!")
 
 function getPostTitle (post) { return post.title }
 function findPost(n) {
-  return new Maybe(
+  return Maybe(
     n === 1 ? { title: 'Anakia' } : null
   )
 }
