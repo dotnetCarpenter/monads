@@ -50,7 +50,7 @@ console.log(
 )
 
 console.log('What happens when you apply a function to a list')
-tap.like( fmap(plus3, new List(2,4,6)) , [{val:5},{val:7},{val:9}] , "" )
+tap.like( fmap(plus3, new List(2,4,6)) , [{val:5,fmap:Function},{val:7,fmap:Function},{val:9,fmap:Function}] , "should be Just objects with a value plus 3 higher than input." )
 // console.log(
 //   new List(2,4,6)
 // )
