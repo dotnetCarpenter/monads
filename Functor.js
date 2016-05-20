@@ -8,10 +8,12 @@ const tap = require("tap")
 // Test function
 const plus3 = x => x + 3
 const plus2 = x => x + 2
+const minus15 = x => x - 15
 
 // Functors
 // (a->b), fa -> b
-const fmap = (f, F) => F.fmap( x => f(x) )
+const fmap = (f, F) => F.fmap( partial(f) )
+const partial = f => x => f(x)
 
 function Just(val) {
   if(!new.target) return new Just(val)
@@ -61,6 +63,9 @@ tap.like( fmap(plus3, new List(2,null,6)) , [5,Nothing,9] , "What happens when y
 
 const foo = fmap( plus3, plus2 )
 tap.like(foo(10), 15, "So functions are Functors too!")
+
+const bar = fmap( foo, minus15 )
+tap.like(bar(10), 0, "So functions are Functors too!")
 
 function getPostTitle (post) { return post.title }
 function findPost(n) {
