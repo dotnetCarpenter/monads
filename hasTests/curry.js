@@ -1,20 +1,24 @@
-const tap = require("tap")
+"use strict"
 
+module.exports = curry
+
+const tap = require("tap")
 const add = (a,b) => a + b
-const curry = function(f) {
+
+function curry(f) {
 	const accumulator = []
 	return function partial(...args) {
 		accumulator.push(...args)
-		return f.length <= accumulator.length ? apply() : partial
-	}
-	function apply() {
-		return f.apply(null, accumulator)
+		if(f.length < accumulator.length) throw new RangeError("Too many arguments", "curry.js")
+		return f.length == accumulator.length ? 
+		 f.apply(f, accumulator) :
+		 partial
 	}
 }
 
 tap.equal( curry(add)(1)(2), 3, "should be equal to 3" )
 tap.equal( curry(add)(1,2), 3, "should be equal to 3" )
-tap.equal( curry(add)(1,2,3), 3, "should be equal to 3" )
+tap.throws( () => curry(add)(1,2,3), RangeError, "should throw a RangeError - too many arguments" )
 tap.like( curry(add)(1), Function, "should be a partial function" )
 
 // let l = console.log

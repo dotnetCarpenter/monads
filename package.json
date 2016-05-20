@@ -2,10 +2,9 @@
   "name": "monads",
   "version": "1.0.0",
   "description": "Learning function programming basics",
-  "main": "Functor.js",
   "private": true,
   "scripts": {
-    "test": "tap Functor.js"
+    "test": "tap hasTests"
   },
   "repository": {
     "type": "git",
