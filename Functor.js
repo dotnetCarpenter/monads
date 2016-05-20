@@ -11,27 +11,31 @@ const plus2 = x => x + 2
 const minus15 = x => x - 15
 
 // Functors
-// (a->b), fa -> b
-const fmap = (f, F) => F.fmap( partial(f) )
-const partial = f => x => f(x)
+// (a->b), fa -> fb
+const fmap = (f, F) => F.fmap( x => f(x) )
+const identity = x => x
+// const partial = f => x => f(x)
+const unbox = function() { return this.fmap(identity) } 
 
 function Just(val) {
   if(!new.target) return new Just(val)
   this.fmap = f => f(val)
 }
+Just.prototype.valueOf = unbox
 
 function Maybe(val) {
   return val == undefined ? new Nothing : new Just(val)
 }
+Maybe.prototype.valueOf = unbox
 
 function Nothing() {
   if(!new.target) return new Nothing
-  this.fmap = () => Nothing
+  this.fmap = () => new Nothing
 }
 
 class List extends Array {
   constructor(...args) {
-    super(...args.map(x => Maybe(x)))
+    super(...args.map(x => new Maybe(x)))
   }
   fmap(f) {
     return this.map(fa => fa.fmap(f))
@@ -44,6 +48,13 @@ Function.prototype.fmap = function(f) {
 }
 
 // Tests
+tap.equal( fmap(identity, Just(2)), Just(identity(2)).fmap(identity), "[Functor Law] - equational reasoning. fmap return a value instead of a container")
+tap.ok( fmap(identity, Just(2)) == Just(identity(2)), "[Functor Law] - equational reasoning. fmap return a value instead of a container")
+tap.equal( Just(9).prototype, identity(Just(9)).prototype, "[Functor Law] - equational reasoning. Same type.")
+tap.ok( fmap(identity, Just(21)) == identity(Just(21)), "[Functor Law] - equational reasoning. Same value")
+tap.equal( fmap(identity, Nothing()).prototype, identity(Nothing()).prototype, "[Functor Law] - equational reasoning")
+
+
 tap.like( Just(2), Just, "fmap knows how to apply functions to values that are wrapped in a context.")
 tap.like( fmap(plus3, Just(2)), 5, "fmap knows how to apply functions to values that are wrapped in a context.")
 
@@ -61,6 +72,10 @@ tap.like( new List(2,4,6) , [Just,Just,Just] , "What happens when you apply a fu
 tap.like( fmap(plus3, new List(2,4,6)) , [5,7,9] , "What happens when you apply a function to a list? 3 higher than input." )
 tap.like( fmap(plus3, new List(2,null,6)) , [5,Nothing,9] , "What happens when you apply a function to a list? Null values are wrapped in Nothing" )
 
+tap.like( new List(1,2,3).map(fmap(plus2, minus15)), [-12,-11,-10], "should be [-12,-11,-10]")
+tap.like( new List(1,2,3).map(plus2).map(minus15), [-12,-11,-10], "should be [-12,-11,-10]")
+tap.like( fmap(fmap(plus2, minus15), new List(1,2,3)), [-12,-11,-10], "should be [-12,-11,-10]")
+
 const foo = fmap( plus3, plus2 )
 tap.like(foo(10), 15, "So functions are Functors too!")
 
@@ -72,4 +87,13 @@ function findPost(n) {
   return Maybe(
     n === 1 ? { title: 'Anakia' } : null
   )
+}
+
+module.export = {
+  Just,
+  Nothing,
+  Maybe,
+  fmap,
+  List,
+  Function
 }
