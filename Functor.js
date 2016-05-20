@@ -89,7 +89,7 @@ function findPost(n) {
   )
 }
 
-module.export = {
+module.exports = {
   Just,
   Nothing,
   Maybe,
