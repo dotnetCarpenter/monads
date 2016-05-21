@@ -4,7 +4,7 @@
   "description": "Learning function programming basics",
   "private": true,
   "scripts": {
-    "test": "tap hasTests -- coverage"
+    "test": "tap hasTests --coverage"
   },
   "repository": {
     "type": "git",
