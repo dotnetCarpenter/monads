@@ -17,9 +17,10 @@ List.prototype.applicative = function(F2) {
     .reduce((x, xs) => x.concat(xs))
 }
 const Maybe = Functor.Maybe
-Maybe.prototype.applicative = function(F2) {
-  return this.applicative(F2)
-}
+// Maybe.prototype.applicative = function(F2) {
+//   return this.applicative(F2)
+// }
+const Nothing = Functor.Nothing
 Function.prototype.applicative = function(F2) {
   // make partial of this
   // call partial with F2.fmap
@@ -57,6 +58,7 @@ tap.equal( liftA2( (a,b) => a*b, new List(5,3) ), 15, "Functions are applicative
 tap.throws( () => liftA2((a,b) => a*b, new List(5,3,2) ), RangeError, "Calling a function with too many arguments throws a RangeError" )
 tap.equal( liftA2( (a,b,c) => a*b*c, new List(5,3,2) ), 30, "Functions are applicatives too!" )
 tap.equal( liftA2( plus3, Just(2) ), 5, "Functions are applicatives too!" )
+tap.like( liftA2( plus3, Maybe(null) ), Nothing, "Functions are applicatives too!" )
 
 // const getTitle = liftA2( Maybe(fmap(getPostTitle, findPost(1))), Maybe(fmap(getPostTitle, findPost(2))) )
 // getTitles()
