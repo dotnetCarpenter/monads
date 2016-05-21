@@ -1,4 +1,4 @@
-monads [![Build Status](https://travis-ci.org/dotnetCarpenter/monads.svg?branch=master)](https://travis-ci.org/dotnetCarpenter/monads)
+monads [![Build Status](https://travis-ci.org/dotnetCarpenter/monads.svg?branch=master)](https://travis-ci.org/dotnetCarpenter/monads) [![codecov](https://codecov.io/gh/dotnetCarpenter/monads/branch/master/graph/badge.svg)](https://codecov.io/gh/dotnetCarpenter/monads)
 ============
 
 I hope that this will be a great collection of Monads implemented in js
