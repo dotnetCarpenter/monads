@@ -9,12 +9,13 @@ function curry(f) {
 	const accumulator = []
 	return function partial(...args) {
 		accumulator.push(...args)
-		if(f.length < accumulator.length) throw new RangeError("Too many arguments", "curry.js")
+		if(f.length < accumulator.length) throw new RangeError("Too many arguments", "curry.js", 10)
 		return f.length === accumulator.length ? 
 		 f.apply(f, accumulator) :
 		 partial
 	}
 }
+
 
 tap.equal( curry(add)(1)(2), 3, "should be equal to 3" )
 tap.equal( curry(add)(1,2), 3, "should be equal to 3" )

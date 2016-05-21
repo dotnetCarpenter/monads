@@ -11,7 +11,7 @@ const plus2 = x => x + 2
 const minus15 = x => x - 15
 
 // Functors
-// (a->b), fa -> fb
+// (a->b) -> fa -> b - would be better with fa -> (a->b) -> b
 const fmap = (f, F) => F.fmap( x => f(x) )
 const identity = x => x
 // const partial = f => x => f(x)
@@ -96,6 +96,5 @@ module.exports = {
   Nothing,
   Maybe,
   fmap,
-  List,
-  Function
+  List
 }
