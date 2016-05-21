@@ -1,27 +1,37 @@
 "use strict"
 
 const tap = require("tap")
-const f = require("./Functor")
+const Functor = require("./Functor")
 const curry = require("./curry")
-const fmap = f.fmap
-const Just = f.Just
-const List = f.List
-
+const partial = require("./partial")
+const flip = f => (b,a) => f(a,b)
+const fmap = Functor.fmap
+const Just = Functor.Just
+Just.prototype.applicative = function(F2){
+  return fmap( this.fmap(identity), F2 )
+}
+const List = Functor.List
+List.prototype.applicative = function(F2) {
+  return this.fmap(f => fmap(f , F2 ))
+    .reduce((x, xs) => x.concat(xs))
+}
 const identity = x => x
 const plus3 = x => x + 3
-const multiply2 = x > x * 2
+const multiply2 = x => x * 2
 
-const applicative = function(f, value) {
-	
-	return F.fmap(identity)(value)
-}
-
-const liftA2 = function(F1, F2, f = identity) {
-	return applicative(fmap(f, F1), fmap(f, F2))
+const liftA2 = function(F1, F2) {
+	return F1.applicative(F2)
 }
 tap.throws( () => fmap(Just(plus3), Just(2)), TypeError, "ERROR ??? WHAT DOES THIS EVEN MEAN WHY IS THE FUNCTION WRAPPED IN A JUST")
 
-tap.like(liftA2(Just(plus3), Just(2)), 5, "Applicatives knows how to apply a function wrapped in a context to a value wrapped in a context.")
+tap.like( liftA2(Just(plus3), Just(2) ), 5, "Applicatives knows how to apply a function wrapped in a context to a value wrapped in a context.")
+
+console.log( liftA2( new List(multiply2), new List(21) ) )
+console.log( liftA2( new List(multiply2, plus3), new List(1,2,3) ) )
+tap.like(
+  liftA2( new List(multiply2), new List(21) )
+  , [42], "Applicatives knows how to apply a function wrapped in a context to a value wrapped in a context.")
+
 tap.like(
   liftA2( new List(multiply2, plus3), new List(1,2,3) )
   , [2, 4, 6, 4, 5, 6], "Applicatives knows how to apply a function wrapped in a context to a value wrapped in a context.")

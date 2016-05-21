@@ -38,7 +38,9 @@ class List extends Array {
     super(...args.map(x => new Maybe(x)))
   }
   fmap(f) {
-    return this.map(fa => fa.fmap(f))
+    return this.map(fa =>
+      fa.fmap(f)
+    )
   }
 }
 

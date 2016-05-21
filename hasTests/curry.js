@@ -10,7 +10,7 @@ function curry(f) {
 	return function partial(...args) {
 		accumulator.push(...args)
 		if(f.length < accumulator.length) throw new RangeError("Too many arguments", "curry.js")
-		return f.length == accumulator.length ? 
+		return f.length === accumulator.length ? 
 		 f.apply(f, accumulator) :
 		 partial
 	}
