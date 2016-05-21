@@ -4,3 +4,5 @@ monads [![Build Status](https://travis-ci.org/dotnetCarpenter/monads.svg?branch=
 I hope that this will be a great collection of Monads implemented in js
 
 *Very much work in progress*
+
+Only code in `hasTests/` is reported in code coverage.
