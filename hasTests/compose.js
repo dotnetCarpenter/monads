@@ -3,14 +3,8 @@
 module.exports = compose
 
 /**
- * @param {function[]} listeners
+ * @param {function[]} functions
  */
-function compose(...listener) {
-  let listeners = []
-  listeners.push(...listener)
-  return (x) => {
-    for(let i = 0, len = listeners.length; i < len; i++)
-      x = listeners[i](x)
-    return x
-  }
+function compose(...functions) {
+  return (x) => functions.reduceRight((x,a) => a(x), x)
 }
