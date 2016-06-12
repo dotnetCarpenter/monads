@@ -6,13 +6,17 @@ const tap = require("tap")
 const add = (a,b) => a + b
 
 function curry(f) {
-	const accumulator = []
+	let accumulator = []
 	return function partial(...args) {
+		let ret
 		accumulator.push(...args)
 		if(f.length < accumulator.length) throw new RangeError("Too many arguments", "curry.js", 10)
-		return f.length === accumulator.length ? 
-		 f.apply(f, accumulator) :
-		 partial
+		if(f.length === accumulator.length) {
+			ret = f.apply(f, accumulator)
+			accumulator = []
+			return ret
+		}
+		return partial
 	}
 }
 
