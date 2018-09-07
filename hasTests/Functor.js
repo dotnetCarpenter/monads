@@ -15,18 +15,27 @@ const minus15 = x => x - 15
 const fmap = (f, F) => F.fmap( x => f(x) )
 const identity = x => x
 // const partial = f => x => f(x)
-const unbox = function() { return this.fmap(identity) } 
+const unbox = function() {
+  let a
+  this.fmap(b => a = b)
+  return a
+}
+const show = function(F) {
+  let a
+  F.fmap(b => a = b)
+  return a
+}
 
 function Just(val) {
   if(!new.target) return new Just(val)
-  this.fmap = f => f(val)
+  this.fmap = f => new Just(f(val))
 }
-Just.prototype.valueOf = unbox
+Just.prototype.valueOf = Just.prototype.toString = unbox
 
 function Maybe(val) {
   return val == undefined ? new Nothing : new Just(val)
 }
-Maybe.prototype.valueOf = unbox
+Just.prototype.valueOf = Just.prototype.toString = unbox
 
 function Nothing() {
   if(!new.target) return new Nothing
@@ -50,8 +59,8 @@ Function.prototype.fmap = function(f) {
 }
 
 // Tests
-tap.equal( fmap(identity, Just(2)), Just(identity(2)).fmap(identity), "[Functor Law] - equational reasoning. fmap return a value instead of a container")
-tap.ok( fmap(identity, Just(2)) == Just(identity(2)), "[Functor Law] - equational reasoning. fmap return a value instead of a container")
+tap.equal( show(fmap(identity, Just(2))), show(Just(identity(2)).fmap(identity)), "[Functor Law] - equational reasoning.")
+tap.ok( fmap(identity, Just(2)).valueOf() == Just(identity(2)).valueOf(), "[Functor Law] - equational reasoning.")
 tap.equal( Just(9).prototype, identity(Just(9)).prototype, "[Functor Law] - equational reasoning. Same type.")
 tap.ok( fmap(identity, Just(21)) == identity(Just(21)), "[Functor Law] - equational reasoning. Same value")
 tap.equal( fmap(identity, Nothing()).prototype, identity(Nothing()).prototype, "[Functor Law] - equational reasoning")

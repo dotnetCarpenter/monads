@@ -8,6 +8,7 @@ function Promise(executor) {
   let thenables = [];
   let rejects = [];
   let catches = [];
+  let finallies = [];
   let states = {
     pending: 1,
     fulfilled: 2,
@@ -16,6 +17,14 @@ function Promise(executor) {
   let state = states.pending;
   let value;
   let timer;
+
+  function runFinallies () {
+    finallies.forEach(f => {
+      try {
+        f()
+      } catch (e) { /* we just skip throwing finallies since our catch block has already executed */ }
+    })
+  }
 
   this.then = (f, r) => {
     if(timer)
@@ -46,6 +55,8 @@ function Promise(executor) {
           catches.forEach(f => f(e));
           catches = [];
         }
+      } finally {
+        runFinallies()
       }
     });
     thenables = [];
@@ -58,13 +69,21 @@ function Promise(executor) {
     let error;
     try {
       rejects.forEach(f => chainableValue = f(chainableValue || value));
-    } catch(e) { error = e;}
+    } catch (e) {
+      error = e;
+    } finally {
+      runFinallies()
+    }
     rejects = [];
     if(error) throw error;
     // console.log(this, state, value, rejects);
   };
   this.catch = f => {
     catches.push(f);
+    return this;
+  };
+  this.finally = f => {
+    finallies.push(f);
     return this;
   };
 
@@ -131,220 +150,225 @@ Promise.all = function(iterable) {
   });
 }
 
+let b = Promise.resolve(4).finally(() => console.log('done')).then((x) => {
+  console.log('another function added this later')
+  return x
+});
+setTimeout(() => b.then(x => console.log(x + 3)), 1000);
 
-// test then
-var p1 = new Promise(function(resolve, reject) {
-  //resolve("Success!");
-  // or
-  reject ("Error!");
-});
+// // test then
+// var p1 = new Promise(function(resolve, reject) {
+//   //resolve("Success!");
+//   // or
+//   reject ("Error!");
+// });
 
-p1.then(function(value) {
-  console.log(value); // Success!
-}, function(reason) {
-  console.log(reason); // Error!
-});
-
-
-// test then chainable
-var p2 = new Promise(function(resolve, reject) {
-  resolve(1);
-});
-p2.then(function(value) {
-  console.log("first", value); // 1
-  return value + 1;
-}).then(function(value) {
-  console.log("second", value); // 2
-});
-p2.then(function(value) {
-  console.log("third", value); // 1
-});
+// p1.then(function(value) {
+//   console.log(value); // Success!
+// }, function(reason) {
+//   console.log(reason); // Error!
+// });
 
 
-// test composition
-function fetch() {
-  var p = new Promise(function(resolve, reject) {
-    setTimeout(resolve, 0);
-  });
-  return p;
-}
-var p3 = function() {
-  return fetch().then(() => {
-    return "innerValue";
-  });
-}
-p3().then(function(value) {
-  console.log(value);
-})
+// // test then chainable
+// var p2 = new Promise(function(resolve, reject) {
+//   resolve(1);
+// });
+// p2.then(function(value) {
+//   console.log("first", value); // 1
+//   return value + 1;
+// }).then(function(value) {
+//   console.log("second", value); // 2
+// });
+// p2.then(function(value) {
+//   console.log("third", value); // 1
+// });
 
 
-// test static resolve
-Promise.resolve("Success - static resolve").then(function(value) {
-  console.log(value); // "Success"
-}, function(value) {
-  throw new Error("Should not be called")// not called
-});
-var p4 = Promise.resolve([1,2,3]);
-p4.then(function(v) {
-  console.log(v[0]); // 1
-});
-var original = Promise.resolve(true);
-var cast = Promise.resolve(original);
-cast.then(function(v) {
-  console.log(v); // true
-});
+// // test composition
+// function fetch() {
+//   var p = new Promise(function(resolve, reject) {
+//     setTimeout(resolve, 0);
+//   });
+//   return p;
+// }
+// var p3 = function() {
+//   return fetch().then(() => {
+//     return "innerValue";
+//   });
+// }
+// p3().then(function(value) {
+//   console.log(value);
+// })
 
 
-// test Resolving a thenable object
-var p5 = Promise.resolve({
-  then: function(onFulfill, onReject) { onFulfill("fulfilled!"); }
-});
-console.log(p5 instanceof Promise) // true, object casted to a Promise
-p5.then(function(v) {
-    console.log(v); // "fulfilled!"
-  }, function(e) {
-    throw new Error("Should not be called"); // not called
-});
-
-// Thenable throws before callback
-// Promise rejects
-var thenable = { then: function(resolve) {
-  throw new TypeError("Throwing");
-  resolve("Resolving");
-}};
-var p6 = Promise.resolve(thenable);
-p6.then(function(v) {
-  throw new Error("Should not be called"); // not called
-}, function(e) {
-  console.log(e); // TypeError: Throwing
-});
-
-// Thenable throws after callback
-// Promise resolves
-var thenable = { then: function(resolve) {
-  resolve("Resolving");
-  throw new TypeError("Throwing");
-}};
-var p7 = Promise.resolve(thenable);
-p7.then(function(v) {
-  console.log(v); // "Resolving"
-}, function(e) {
-  throw new Error("Should not be called"); // not called
-});
+// // test static resolve
+// Promise.resolve("Success - static resolve").then(function(value) {
+//   console.log(value); // "Success"
+// }, function(value) {
+//   throw new Error("Should not be called")// not called
+// });
+// var p4 = Promise.resolve([1,2,3]);
+// p4.then(function(v) {
+//   console.log(v[0]); // 1
+// });
+// var original = Promise.resolve(true);
+// var cast = Promise.resolve(original);
+// cast.then(function(v) {
+//   console.log(v); // true
+// });
 
 
-// test static reject
-Promise.reject("Testing static reject").then(function(reason) {
-  throw new Error("Should not be called"); // not called
-}, function(reason) {
-  console.log(reason); // "Testing static reject"
-});
-Promise.reject(new Error("fail")).then(function(error) {
-  throw new Error("Should not be called"); // not called
-}, function(error) {
-  console.log(error); // Stacktrace
-});
+// // test Resolving a thenable object
+// var p5 = Promise.resolve({
+//   then: function(onFulfill, onReject) { onFulfill("fulfilled!"); }
+// });
+// console.log(p5 instanceof Promise) // true, object casted to a Promise
+// p5.then(function(v) {
+//     console.log(v); // "fulfilled!"
+//   }, function(e) {
+//     throw new Error("Should not be called"); // not called
+// });
+
+// // Thenable throws before callback
+// // Promise rejects
+// var thenable = { then: function(resolve) {
+//   throw new TypeError("Throwing");
+//   resolve("Resolving");
+// }};
+// var p6 = Promise.resolve(thenable);
+// p6.then(function(v) {
+//   throw new Error("Should not be called"); // not called
+// }, function(e) {
+//   console.log(e); // TypeError: Throwing
+// });
+
+// // Thenable throws after callback
+// // Promise resolves
+// var thenable = { then: function(resolve) {
+//   resolve("Resolving");
+//   throw new TypeError("Throwing");
+// }};
+// var p7 = Promise.resolve(thenable);
+// p7.then(function(v) {
+//   console.log(v); // "Resolving"
+// }, function(e) {
+//   throw new Error("Should not be called"); // not called
+// });
 
 
-// test catch
-var p8 = new Promise(function(resolve, reject) {
-  resolve('Success');
-});
-p8.then(function(value) {
-  console.log(value); // "Success!"
-  throw 'oh, no!';
-}).catch(function(e) {
-  console.log(e); // "oh, no!"
-}).then(function(e){
-  console.log('after a catch the chain is restored');
-}, function () {
-  console.log('Not fired due to the catch');
-});
-// The following behaves the same as above
-p8.then(function(value) {
-  console.log(value); // "Success!"
-  return Promise.reject('oh, no!');
-}).catch(function(e) {
-  console.log(e); // "oh, no!"
-}).then(function(e){
-  console.log('after a catch the chain is restored');
-}, function () {
-  console.log('Not fired due to the catch');
-});
+// // test static reject
+// Promise.reject("Testing static reject").then(function(reason) {
+//   throw new Error("Should not be called"); // not called
+// }, function(reason) {
+//   console.log(reason); // "Testing static reject"
+// });
+// Promise.reject(new Error("fail")).then(function(error) {
+//   throw new Error("Should not be called"); // not called
+// }, function(error) {
+//   console.log(error); // Stacktrace
+// });
 
 
-// test race
-var p9 = new Promise(function(resolve, reject) {
-    setTimeout(resolve, 500, "one");
-});
-var p10 = new Promise(function(resolve, reject) {
-    setTimeout(resolve, 100, "two");
-});
-Promise.race([p9, p10]).then(function(value) {
-  console.log(value); // "two"
-  // Both resolve, but p10 is faster
-});
-
-var p11 = new Promise(function(resolve, reject) {
-    setTimeout(resolve, 100, "three");
-});
-var p12 = new Promise(function(resolve, reject) {
-    setTimeout(reject, 500, "four");
-});
-Promise.race([p11, p12]).then(function(value) {
-  console.log(value); // "three"
-  // p11 is faster, so it resolves
-}, function(reason) {
-   throw new Error("Should not be called"); // not called
-});
-
-var p13 = new Promise(function(resolve, reject) {
-    setTimeout(resolve, 500, "five");
-});
-var p14 = new Promise(function(resolve, reject) {
-    setTimeout(reject, 100, "six");
-});
-Promise.race([p13, p14]).then(function(val14e) {
-   throw new Error("Should not be called"); // not called
-}, function(reason) {
-  console.log(reason); // "six"
-  // p14 is faster, so it rejects
-});
+// // test catch
+// var p8 = new Promise(function(resolve, reject) {
+//   resolve('Success');
+// });
+// p8.then(function(value) {
+//   console.log(value); // "Success!"
+//   throw 'oh, no!';
+// }).catch(function(e) {
+//   console.log(e); // "oh, no!"
+// }).then(function(e){
+//   console.log('after a catch the chain is restored');
+// }, function () {
+//   console.log('Not fired due to the catch');
+// });
+// // The following behaves the same as above
+// p8.then(function(value) {
+//   console.log(value); // "Success!"
+//   return Promise.reject('oh, no!');
+// }).catch(function(e) {
+//   console.log(e); // "oh, no!"
+// }).then(function(e){
+//   console.log('after a catch the chain is restored');
+// }, function () {
+//   console.log('Not fired due to the catch');
+// });
 
 
-// test Promise.all
-var p15 = Promise.resolve(3);
-var p16 = 1337;
-var p17 = new Promise(function(resolve, reject) {
-  setTimeout(resolve, 100, "foo");
-});
-Promise.all([p15, p16, p17]).then(function(values) {
-  console.log(values); // [3, 1337, "foo"]
-});
+// // test race
+// var p9 = new Promise(function(resolve, reject) {
+//     setTimeout(resolve, 500, "one");
+// });
+// var p10 = new Promise(function(resolve, reject) {
+//     setTimeout(resolve, 100, "two");
+// });
+// Promise.race([p9, p10]).then(function(value) {
+//   console.log(value); // "two"
+//   // Both resolve, but p10 is faster
+// });
 
-// Promise.all is rejected if one of the elements is rejected
-// and Promise.all fails fast: If you have four promises which
-// resolve after a timeout, and one rejects immediately, then
-// Promise.all rejects immediately.
-var p18 = new Promise(function(resolve, reject) {
-  setTimeout(resolve, 1000, "one");
-});
-var p19 = new Promise(function(resolve, reject) {
-  setTimeout(resolve, 2000, "two");
-});
-var p20 = new Promise(function(resolve, reject) {
-  setTimeout(resolve, 3000, "three");
-});
-var p21 = new Promise(function(resolve, reject) {
-  setTimeout(resolve, 4000, "four");
-});
-var p22 = new Promise(function(resolve, reject) {
-  reject("reject");
-  //From console:
-  //"reject"
-});
-Promise.all([p18, p19, p20, p21, p22]).then(function(value) {
-  console.log(value);
-}, function(reason) {
-  console.log(reason)
-});
+// var p11 = new Promise(function(resolve, reject) {
+//     setTimeout(resolve, 100, "three");
+// });
+// var p12 = new Promise(function(resolve, reject) {
+//     setTimeout(reject, 500, "four");
+// });
+// Promise.race([p11, p12]).then(function(value) {
+//   console.log(value); // "three"
+//   // p11 is faster, so it resolves
+// }, function(reason) {
+//    throw new Error("Should not be called"); // not called
+// });
+
+// var p13 = new Promise(function(resolve, reject) {
+//     setTimeout(resolve, 500, "five");
+// });
+// var p14 = new Promise(function(resolve, reject) {
+//     setTimeout(reject, 100, "six");
+// });
+// Promise.race([p13, p14]).then(function(val14e) {
+//    throw new Error("Should not be called"); // not called
+// }, function(reason) {
+//   console.log(reason); // "six"
+//   // p14 is faster, so it rejects
+// });
+
+
+// // test Promise.all
+// var p15 = Promise.resolve(3);
+// var p16 = 1337;
+// var p17 = new Promise(function(resolve, reject) {
+//   setTimeout(resolve, 100, "foo");
+// });
+// Promise.all([p15, p16, p17]).then(function(values) {
+//   console.log(values); // [3, 1337, "foo"]
+// });
+
+// // Promise.all is rejected if one of the elements is rejected
+// // and Promise.all fails fast: If you have four promises which
+// // resolve after a timeout, and one rejects immediately, then
+// // Promise.all rejects immediately.
+// var p18 = new Promise(function(resolve, reject) {
+//   setTimeout(resolve, 1000, "one");
+// });
+// var p19 = new Promise(function(resolve, reject) {
+//   setTimeout(resolve, 2000, "two");
+// });
+// var p20 = new Promise(function(resolve, reject) {
+//   setTimeout(resolve, 3000, "three");
+// });
+// var p21 = new Promise(function(resolve, reject) {
+//   setTimeout(resolve, 4000, "four");
+// });
+// var p22 = new Promise(function(resolve, reject) {
+//   reject("reject");
+//   //From console:
+//   //"reject"
+// });
+// Promise.all([p18, p19, p20, p21, p22]).then(function(value) {
+//   console.log(value);
+// }, function(reason) {
+//   console.log(reason)
+// });
