@@ -1,3 +1,9 @@
 [submodule "monadjs"]
 	path = monadjs
 	url = https://github.com/dotnetCarpenter/monadjs.git
+[submodule "fp_machines"]
+	path = fp_machines
+	url = https://github.com/dotnetCarpenter/fp_machines
+[submodule "monad299"]
+	path = monad299
+	url = git@github.com:dotnetCarpenter/monad299.git
