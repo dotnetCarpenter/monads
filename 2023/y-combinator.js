@@ -33,8 +33,10 @@ const False = trueCase => falseCase => falseCase
 // False = \_ y -> y
 var darkMode = False
 var backgroundColor = darkMode ("black") ("white") // using the `darkMode` bool
-console.debug (darkMode,        // <- Function: False
-               backgroundColor) // <- white
+console.debug (darkMode,        	// <- Function: False
+               backgroundColor, 	// <- white
+	       darkMode == False,	// <- true
+	       darkMode === False)	// <- true
 
 var darkMode = True
 var backgroundColor = darkMode ("black") ("white") // using the `darkMode` bool
