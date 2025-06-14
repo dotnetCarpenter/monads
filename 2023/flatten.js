@@ -11,7 +11,7 @@ const flatten = list => {
 }
 
 console.log (
-	flatten ([[0]]),
+  flatten ([[0]]),
   flatten ([[0], [1],[2,[3]]]),
   flatten ([0,1,2,3,4,5]),
 )

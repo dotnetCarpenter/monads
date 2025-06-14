@@ -8,7 +8,7 @@ const Y = f => (g => g (g)) (g => f (x => g (g) (x)))
 
 const fact = n => n === 0 ? 1 : n * fact (n - 1)
 
-// create a recursive function in an anonomous function
+// create a recursive function in an anonymous function
 const YFact = Y (fact => n => n === 0 ? 1 : n * fact (n - 1))
 
 const YPlus = Y (plus => n => m => n === 0 ? m : 1 + plus (n - 1) (m))
